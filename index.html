@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bagels</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="body">
+    <div class="title">
+        <h1>BAGELS</h1>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="input-row">
+                <input id="guess" type="text" name="text" autocomplete="off" class="input" v-on:keyup.enter="submitGuess($event)" :disabled="is_won || is_lost">
+                <label class="input-label">Guess{{ currentGuess }}</label>
+            </div>
+        </div>
+        <div class="description">
+            <p>I am thinking of 3-digit number try to guess what it is .</p>
+            <p>here are some clues :</p>
+            <p>when i say: => that means:</p>
+            <p style="color: rgb(199, 199, 0);">Pico => one digit is correct but in the wrong position</p>
+            <p style="color: green;">Fermi => one digit is correct and in right position</p>
+            <p style="color: red;">Bagels => no digit is correct</p>
+        </div>
+        <div class="status">
+            <strong>Status : </strong>
+            <strong v-if="is_won"> YOU GOT IT!</strong>
+            <strong v-if="is_lost">Game Over! You didn't guess the number in {{ maxGuesses }} attempts.</strong>
+            <ul class="circle_ul">
+                <li v-for="(guess, index) in guessHistory" :key="index">{{ guess }}</li>
+            </ul>
+        </div>
+        <button class="reset" v-if="is_won || is_lost" @:click = "resetGame">Reset</button>
+    </div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+    const app = Vue.createApp({
+        data() {
+            return {
+                secretNumber: Math.floor((Math.random() * 900) + 100),
+                currentGuess: 1,
+                guessHistory: {},
+                is_won: false,
+                is_lost: false,
+                maxGuesses: 7
+            }
+        },
+        methods: {
+            Bagels(guess, secretNum) {
+                var secretNumArray = secretNum.toString().split('');
+                var guessArray = guess.toString().split('');
+                if (guessArray.join("") == secretNumArray.join("")) {
+                    return 'You Win!';
+                }
+                var clues = []
+                for (let i = 0; i < guessArray.length; i++) {
+                    if (guessArray[i] == secretNumArray[i]) {
+                        clues.push('Fermi')
+                    } else if (secretNumArray.includes(guessArray[i])) {
+                        clues.push('Pico')
+                    }
+                }
+                if (clues.length == 0) {
+                    return 'Bagels'
+                } else {
+                    let sortedClues = clues.sort()
+                    return sortedClues.join(', ')
+                }
+            },
+            submitGuess(e) {
+                if (/^\d{3}$/.test(Number(e.target.value))) {
+                    if (this.currentGuess > this.maxGuesses) {
+                        this.is_lost = true;
+                        e.target.value = ""
+                        return;
+                    }
+                    this.guessHistory[this.currentGuess] = e.target.value + ": " + this.Bagels(e.target.value, this.secretNumber)
+                    if (this.Bagels(e.target.value, this.secretNumber) == "You Win!") {
+                        this.is_won = true
+                        e.target.value = ""
+                        return;
+                    } else {
+                        this.currentGuess++
+                    }
+                    e.target.value = ''
+                }
+            },resetGame() {
+                this.is_won = false;
+                this.is_lost = false;
+                this.currentGuess = 1;
+                this.guessHistory = {};
+                this.secretNumber = Math.floor((Math.random() * 900) + 100);
+            }
+        }
+    })
+    app.mount(".body")
+</script>
+</body>
+</html>
